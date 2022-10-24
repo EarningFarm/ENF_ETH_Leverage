@@ -1,0 +1,21 @@
+N1: Skipped, since we are gonna allow the other contracts can deposit through our vault
+N2: Fixed, equal is added
+N3: Fixed, devided by totalAssets rather than totalDeposit
+N4: Skipped, this will be checked on Offchain, if there is someone wanna deposit little amount, it should be reverted
+N5: Fixed, use the difference between balances before and after transfer
+N6: Fixed, use get_virtual_price instead
+N7: Fixed, event logs are added
+N8: Fixed, record amount left and total Alloc point for getting last SS
+N9: Skipped, since it is only theoritically, for market fluctant, it could be varied, or withdraw just after deposit, before harvest
+N10: Fixed, add router listing process on exchange
+N11: Fixed, do multiply first
+N12: Fixed, added greater than
+N13: FIxed, use int instead of uint and added positive check
+N14: Skipped, that is what we needed, we will use multisig for it
+N15: 1) Skipped, it is EIP4626 standard interface, 2) Fixed
+N16: Fixed, use get_virtual_price instead
+N17: Fixed, removed getPID function from Alusd, it is a temporary one
+N18: Fixed, removed approve part
+N19: Fixed, changed storage to memory
+N20: Skipped, it is too complicated to get expected output from various exchange protocols, and not gas efficient
+N21: Fixed, added onlyExchange modifier
