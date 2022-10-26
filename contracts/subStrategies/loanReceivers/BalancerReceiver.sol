@@ -76,12 +76,17 @@ contract BalancerReceiver is OwnableUpgradeable, IFlashloanReceiver {
         require(msg.sender == balancer, "ONLY_FLASHLOAN_VAULT");
         require(isLoan, "NOT_LOAN_REQUESTED");
 
+        IERC20 token = tokens[0];
         uint256 loanAmt = amounts[0];
         uint256 feeAmt = feeAmounts[0];
 
+        // Transfer Loan Token to ETH Leverage SS
+        TransferHelper.safeTransfer(address(token), subStrategy, loanAmt);
+
+        // Call Loan Fallback function in SS
         IETHLeverage(subStrategy).loanFallback(loanAmt, feeAmt);
 
         // Pay back flash loan
-        require(address(this).balance >= loanAmt + feeAmt, "INSUFFICIENT_REFUND");
+        require(token.balanceOf(address(this)) >= loanAmt + feeAmt, "INSUFFICIENT_REFUND");
     }
 }

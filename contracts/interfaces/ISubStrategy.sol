@@ -8,7 +8,7 @@ interface ISubStrategy {
 
     function withdraw(uint256 _amount) external returns (uint256);
 
-    function harvest() external;
+    // function harvest() external;
 
     function maxDeposit() external view returns (uint256);
 

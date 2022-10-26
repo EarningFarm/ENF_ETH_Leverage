@@ -260,73 +260,73 @@ contract Controller is Initializable, IController, OwnableUpgradeable, Reentranc
         Harvest from sub strategies, group similar sub strategies in terms of reward token.
         Then exchange it to asset in this vault, deposit again
      */
-    function harvest(
-        uint256[] memory _ssIds,
-        bytes32[] memory _indexes,
-        address[] memory _routers
-    ) public onlyOwner returns (uint256) {
-        // Check the length of indexes and routers are the same
-        require(_indexes.length == _routers.length, "NOT_MATCHING_INDEX_ROUTER");
+    // function harvest(
+    //     uint256[] memory _ssIds,
+    //     bytes32[] memory _indexes,
+    //     address[] memory _routers
+    // ) public onlyOwner returns (uint256) {
+    //     // Check the length of indexes and routers are the same
+    //     require(_indexes.length == _routers.length, "NOT_MATCHING_INDEX_ROUTER");
 
-        uint256 prevTotal = _totalAssets();
-        // Loop Through harvest group
-        for (uint256 i = 0; i < _ssIds.length; i++) {
-            address subStrategy = subStrategies[_ssIds[i]].subStrategy;
+    //     uint256 prevTotal = _totalAssets();
+    //     // Loop Through harvest group
+    //     for (uint256 i = 0; i < _ssIds.length; i++) {
+    //         address subStrategy = subStrategies[_ssIds[i]].subStrategy;
 
-            /**
-                Check harvest gap, it must passed over the gap since last harvested
-                Harvest gap and latest harvest timestamp is maintained on sub strategy
-             */
-            if (ISubStrategy(subStrategy).latestHarvest() + ISubStrategy(subStrategy).harvestGap() > block.timestamp)
-                continue;
-            // Harvest from Individual Sub Strategy
-            ISubStrategy(subStrategy).harvest();
-            console.log("Harvestd");
-        }
+    //         /**
+    //             Check harvest gap, it must passed over the gap since last harvested
+    //             Harvest gap and latest harvest timestamp is maintained on sub strategy
+    //          */
+    //         if (ISubStrategy(subStrategy).latestHarvest() + ISubStrategy(subStrategy).harvestGap() > block.timestamp)
+    //             continue;
+    //         // Harvest from Individual Sub Strategy
+    //         ISubStrategy(subStrategy).harvest();
+    //         console.log("Harvestd");
+    //     }
 
-        require(exchange != address(0), "EXCHANGE_NOT_SET");
+    //     require(exchange != address(0), "EXCHANGE_NOT_SET");
 
-        // Swap fromToken to toToken for deposit
-        for (uint256 i = 0; i < _indexes.length; i++) {
-            // If index of path is not registered, revert it
-            require(_indexes[i] != 0, "NON_REGISTERED_PATH");
+    //     // Swap fromToken to toToken for deposit
+    //     for (uint256 i = 0; i < _indexes.length; i++) {
+    //         // If index of path is not registered, revert it
+    //         require(_indexes[i] != 0, "NON_REGISTERED_PATH");
 
-            // Get fromToken Address
-            address fromToken = IRouter(_routers[i]).pathFrom(_indexes[i]);
-            // Get toToken Address
-            address toToken = IRouter(_routers[i]).pathTo(_indexes[i]);
+    //         // Get fromToken Address
+    //         address fromToken = IRouter(_routers[i]).pathFrom(_indexes[i]);
+    //         // Get toToken Address
+    //         address toToken = IRouter(_routers[i]).pathTo(_indexes[i]);
 
-            uint256 amount = getBalance(address(fromToken), address(this));
-            console.log("From Token: ", fromToken, amount);
-            if (amount == 0) continue;
+    //         uint256 amount = getBalance(address(fromToken), address(this));
+    //         console.log("From Token: ", fromToken, amount);
+    //         if (amount == 0) continue;
 
-            if (fromToken == weth) {
-                IExchange(exchange).swapExactETHInput{value: amount}(toToken, _routers[i], _indexes[i], amount);
-            } else {
-                // Approve fromToken to Exchange
-                IERC20(fromToken).approve(exchange, 0);
-                IERC20(fromToken).approve(exchange, amount);
+    //         if (fromToken == weth) {
+    //             IExchange(exchange).swapExactETHInput{value: amount}(toToken, _routers[i], _indexes[i], amount);
+    //         } else {
+    //             // Approve fromToken to Exchange
+    //             IERC20(fromToken).approve(exchange, 0);
+    //             IERC20(fromToken).approve(exchange, amount);
 
-                // Call Swap on exchange
-                IExchange(exchange).swapExactTokenInput(fromToken, toToken, _routers[i], _indexes[i], amount);
-            }
-        }
+    //             // Call Swap on exchange
+    //             IExchange(exchange).swapExactTokenInput(fromToken, toToken, _routers[i], _indexes[i], amount);
+    //         }
+    //     }
 
-        // Deposit harvested reward
-        uint256 assetsHarvested = getBalance(address(asset), address(this));
+    //     // Deposit harvested reward
+    //     uint256 assetsHarvested = getBalance(address(asset), address(this));
 
-        require(assetsHarvested > 0, "ZERO_REWARD_HARVESTED");
+    //     require(assetsHarvested > 0, "ZERO_REWARD_HARVESTED");
 
-        uint256 fee = (harvestFee * assetsHarvested) / magnifier;
-        TransferHelper.safeTransfer(address(asset), treasury, fee);
+    //     uint256 fee = (harvestFee * assetsHarvested) / magnifier;
+    //     TransferHelper.safeTransfer(address(asset), treasury, fee);
 
-        uint256 toDeposit = assetsHarvested - fee;
-        _deposit((toDeposit));
+    //     uint256 toDeposit = assetsHarvested - fee;
+    //     _deposit((toDeposit));
 
-        emit Harvest(address(asset), prevTotal, assetsHarvested, block.timestamp);
+    //     emit Harvest(address(asset), prevTotal, assetsHarvested, block.timestamp);
 
-        return assetsHarvested;
-    }
+    //     return assetsHarvested;
+    // }
 
     function getBalance(address _asset, address _account) internal view returns (uint256) {
         if (address(_asset) == address(0) || address(_asset) == weth) return address(_account).balance;

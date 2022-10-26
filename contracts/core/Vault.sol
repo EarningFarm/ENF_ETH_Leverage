@@ -10,9 +10,10 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 
 import "../interfaces/IController.sol";
+import "../interfaces/IVault.sol";
 import "../utils/TransferHelper.sol";
 
-contract EFVault is Initializable, ERC20Upgradeable, OwnableUpgradeable, ReentrancyGuardUpgradeable {
+contract EFVault is IVault, Initializable, ERC20Upgradeable, OwnableUpgradeable, ReentrancyGuardUpgradeable {
     using SafeERC20Upgradeable for ERC20Upgradeable;
     using SafeMath for uint256;
 
@@ -21,6 +22,8 @@ contract EFVault is Initializable, ERC20Upgradeable, OwnableUpgradeable, Reentra
     string public constant version = "3.0";
 
     address public controller;
+
+    address public subStrategy;
 
     uint256 public maxDeposit;
 
@@ -54,6 +57,11 @@ contract EFVault is Initializable, ERC20Upgradeable, OwnableUpgradeable, Reentra
         _;
     }
 
+    modifier onlySS() {
+        require(subStrategy == _msgSender(), "ONLY_SUBSTRATEGY");
+        _;
+    }
+
     function initialize(
         ERC20Upgradeable _asset,
         string memory _name,
@@ -71,6 +79,7 @@ contract EFVault is Initializable, ERC20Upgradeable, OwnableUpgradeable, Reentra
         public
         payable
         virtual
+        override
         nonReentrant
         unPaused
         returns (uint256 shares)
@@ -98,6 +107,10 @@ contract EFVault is Initializable, ERC20Upgradeable, OwnableUpgradeable, Reentra
         _mint(receiver, shares);
 
         emit Deposit(address(asset), msg.sender, receiver, assets, shares);
+    }
+
+    function mint(uint256 amount, address account) external override onlySS {
+        _mint(account, amount);
     }
 
     function withdraw(uint256 assets, address receiver) public virtual nonReentrant unPaused returns (uint256 shares) {
