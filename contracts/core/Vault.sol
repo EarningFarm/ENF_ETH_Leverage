@@ -20,8 +20,6 @@ contract EFVault is Initializable, ERC20Upgradeable, OwnableUpgradeable, Reentra
 
     string public constant version = "3.0";
 
-    address public depositApprover;
-
     address public controller;
 
     uint256 public maxDeposit;
@@ -49,6 +47,8 @@ contract EFVault is Initializable, ERC20Upgradeable, OwnableUpgradeable, Reentra
 
     event SetDepositApprover(address depositApprover);
 
+    receive() external payable {}
+
     modifier unPaused() {
         require(!paused, "PAUSED");
         _;
@@ -67,17 +67,25 @@ contract EFVault is Initializable, ERC20Upgradeable, OwnableUpgradeable, Reentra
         maxWithdraw = type(uint256).max;
     }
 
-    function deposit(uint256 assets, address receiver) public virtual nonReentrant unPaused returns (uint256 shares) {
+    function deposit(uint256 assets, address receiver)
+        public
+        payable
+        virtual
+        nonReentrant
+        unPaused
+        returns (uint256 shares)
+    {
         require(assets != 0, "ZERO_ASSETS");
         require(assets <= maxDeposit, "EXCEED_ONE_TIME_MAX_DEPOSIT");
 
-        require(getBalance(address(this)) >= assets, "INSUFFICIENT_TRANSFER");
+        require(msg.value >= assets, "INSUFFICIENT_TRANSFER");
 
         // Need to transfer before minting or ERC777s could reenter.
-        TransferHelper.safeTransfer(address(asset), address(controller), assets);
+        TransferHelper.safeTransferETH(address(controller), assets);
 
         // Total Assets amount until now
         uint256 totalDeposit = IController(controller).totalAssets();
+
         // Calls Deposit function on controller
         uint256 newDeposit = IController(controller).deposit(assets);
 
@@ -90,12 +98,6 @@ contract EFVault is Initializable, ERC20Upgradeable, OwnableUpgradeable, Reentra
         _mint(receiver, shares);
 
         emit Deposit(address(asset), msg.sender, receiver, assets, shares);
-    }
-
-    function getBalance(address account) internal view returns (uint256) {
-        // Asset is zero address when it is ether
-        if (address(asset) == address(0)) return address(account).balance;
-        else return IERC20Upgradeable(asset).balanceOf(account);
     }
 
     function withdraw(uint256 assets, address receiver) public virtual nonReentrant unPaused returns (uint256 shares) {
@@ -162,13 +164,6 @@ contract EFVault is Initializable, ERC20Upgradeable, OwnableUpgradeable, Reentra
         controller = _controller;
 
         emit SetController(controller);
-    }
-
-    function setDepositApprover(address _approver) public onlyOwner {
-        require(_approver != address(0), "INVALID_ZERO_ADDRESS");
-        depositApprover = _approver;
-
-        emit SetDepositApprover(depositApprover);
     }
 
     ////////////////////////////////////////////////////////////////////

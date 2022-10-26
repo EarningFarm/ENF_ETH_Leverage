@@ -95,7 +95,27 @@ contract ETHLeverage is OwnableUpgradeable, ISubStrategy {
     /**
         Deposit internal function
      */
-    function _deposit(uint256 _amount) internal returns (uint256) {}
+    function _deposit(uint256 _amount) internal returns (uint256) {
+        // Get Prev Deposit Amt
+        uint256 prevAmt = _totalAssets();
+
+        // Check Max Deposit
+        require(prevAmt + _amount <= maxDeposit, "EXCEED_MAX_DEPOSIT");
+
+        uint256 ethAmt = address(this).balance;
+        require(ethAmt >= _amount, "INSUFFICIENT_ETH_TRANSFER");
+
+        // Get new total assets amount
+        uint256 newAmt = _totalAssets();
+
+        // Deposited amt
+        uint256 deposited = newAmt - prevAmt;
+        uint256 minOutput = (_amount * (magnifier - depositSlippage)) / magnifier;
+
+        require(deposited >= minOutput, "DEPOSIT_SLIPPAGE_TOO_BIG");
+
+        return deposited;
+    }
 
     /**
         Withdraw function of USDC
