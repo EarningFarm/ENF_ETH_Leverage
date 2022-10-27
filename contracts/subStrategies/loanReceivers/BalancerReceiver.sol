@@ -45,6 +45,8 @@ contract BalancerReceiver is OwnableUpgradeable, IFlashloanReceiver {
         subStrategy = _subStrategy;
     }
 
+    receive() external payable {}
+
     modifier loanProcess() {
         isLoan = true;
         _;
@@ -88,5 +90,6 @@ contract BalancerReceiver is OwnableUpgradeable, IFlashloanReceiver {
 
         // Pay back flash loan
         require(token.balanceOf(address(this)) >= loanAmt + feeAmt, "INSUFFICIENT_REFUND");
+        TransferHelper.safeTransfer(address(token), balancer, loanAmt + feeAmt);
     }
 }

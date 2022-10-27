@@ -136,12 +136,13 @@ contract Controller is Initializable, IController, OwnableUpgradeable, Reentranc
         Unless loop through sub strategies regiestered and distribute assets according to the allocpoint of each SS
      */
     function _deposit(uint256 _amount) internal returns (uint256 depositAmt) {
+        console.log("Controller: ", address(this).balance);
         if (isDefault) {
             // Check Such default SS exists in current pool
             require(subStrategies.length > defaultDepositSS, "INVALID_POOL_LENGTH");
 
             // Transfer asset to substrategy
-            TransferHelper.safeTransfer(address(asset), subStrategies[defaultDepositSS].subStrategy, _amount);
+            TransferHelper.safeTransferETH(subStrategies[defaultDepositSS].subStrategy, _amount);
 
             // Calls deposit function on SubStrategy
             depositAmt = ISubStrategy(subStrategies[defaultDepositSS].subStrategy).deposit(_amount);
@@ -165,7 +166,7 @@ contract Controller is Initializable, IController, OwnableUpgradeable, Reentranc
                 if (amountForSS == 0) continue;
 
                 // Transfer asset to substrategy
-                TransferHelper.safeTransfer(address(asset), subStrategies[i].subStrategy, amountForSS);
+                TransferHelper.safeTransferETH(subStrategies[i].subStrategy, amountForSS);
 
                 // Calls deposit function on SubStrategy
                 uint256 amount = ISubStrategy(subStrategies[i].subStrategy).deposit(amountForSS);
@@ -216,15 +217,16 @@ contract Controller is Initializable, IController, OwnableUpgradeable, Reentranc
         }
 
         if (withdrawAmt > 0) {
-            require(asset.balanceOf(address(this)) >= withdrawAmt, "INVALID_WITHDRAWN_AMOUNT");
+            console.log("Cont Withdraw: ", address(this).balance, withdrawAmt);
+            require(address(this).balance >= withdrawAmt, "INVALID_WITHDRAWN_AMOUNT");
 
             // Pay Withdraw Fee to treasury and send rest to user
             fee = (withdrawAmt * withdrawFee) / magnifier;
-            TransferHelper.safeTransfer(address(asset), treasury, fee);
+            TransferHelper.safeTransferETH(treasury, fee);
 
             // Transfer withdrawn token to receiver
             uint256 toReceive = withdrawAmt - fee;
-            TransferHelper.safeTransfer(address(asset), _receiver, toReceive);
+            TransferHelper.safeTransferETH(_receiver, toReceive);
         }
     }
 
@@ -351,7 +353,7 @@ contract Controller is Initializable, IController, OwnableUpgradeable, Reentranc
         uint256 withdrawAmt = ISubStrategy(from).withdraw(withdrawFromSS);
 
         // Transfer asset to substrategy
-        TransferHelper.safeTransfer(address(asset), to, withdrawAmt);
+        TransferHelper.safeTransferETH(to, withdrawAmt);
 
         // Calls deposit function on SubStrategy
         uint256 depositAmt = ISubStrategy(to).deposit(withdrawAmt);

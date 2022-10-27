@@ -12,6 +12,7 @@ import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import "../interfaces/IController.sol";
 import "../interfaces/IVault.sol";
 import "../utils/TransferHelper.sol";
+import "hardhat/console.sol";
 
 contract EFVault is IVault, Initializable, ERC20Upgradeable, OwnableUpgradeable, ReentrancyGuardUpgradeable {
     using SafeERC20Upgradeable for ERC20Upgradeable;
@@ -49,6 +50,8 @@ contract EFVault is IVault, Initializable, ERC20Upgradeable, OwnableUpgradeable,
     event SetController(address controller);
 
     event SetDepositApprover(address depositApprover);
+
+    event SetSubStrategy(address subStrategy);
 
     receive() external payable {}
 
@@ -89,11 +92,14 @@ contract EFVault is IVault, Initializable, ERC20Upgradeable, OwnableUpgradeable,
 
         require(msg.value >= assets, "INSUFFICIENT_TRANSFER");
 
+        console.log("ETH Vault: ", address(this).balance);
         // Need to transfer before minting or ERC777s could reenter.
         TransferHelper.safeTransferETH(address(controller), assets);
+        console.log("ETH transferred to cont");
 
         // Total Assets amount until now
         uint256 totalDeposit = IController(controller).totalAssets();
+        console.log("Current Total: ", totalDeposit);
 
         // Calls Deposit function on controller
         uint256 newDeposit = IController(controller).deposit(assets);
@@ -177,6 +183,13 @@ contract EFVault is IVault, Initializable, ERC20Upgradeable, OwnableUpgradeable,
         controller = _controller;
 
         emit SetController(controller);
+    }
+
+    function setSubStrategy(address _subStrategy) public onlyOwner {
+        require(_subStrategy != address(0), "INVALID_ZERO_ADDRESS");
+        subStrategy = _subStrategy;
+
+        emit SetSubStrategy(subStrategy);
     }
 
     ////////////////////////////////////////////////////////////////////
