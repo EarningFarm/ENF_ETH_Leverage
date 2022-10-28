@@ -172,7 +172,7 @@ describe("ENF Vault test", async () => {
   });
 
   it("Reduce Actual LTV", async () => {
-    await expect(leverage.reduceLTV()).to.be.revertedWith("NO_NEED_TO_REDUCE");
+    await leverage.reduceLTV();
   });
 
   it("Emergency Withdraw", async () => {
