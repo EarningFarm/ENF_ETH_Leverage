@@ -79,7 +79,7 @@ contract ETHLeverExchange is OwnableUpgradeable, IExchange {
 
         // ETH output
         uint256 ethOut = ICurve(curvePool).get_dy(1, 0, input);
-        require(ethOut > output, "EXTREME_MARKET");
+        require(ethOut >= output, "EXTREME_MARKET");
 
         // StETH percentage
         uint256 toSwap = (input * output) / ethOut;

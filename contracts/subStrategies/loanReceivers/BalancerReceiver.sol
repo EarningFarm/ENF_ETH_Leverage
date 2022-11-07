@@ -53,11 +53,16 @@ contract BalancerReceiver is OwnableUpgradeable, IFlashloanReceiver {
         isLoan = false;
     }
 
+    modifier onlySS() {
+        require(_msgSender() == subStrategy, "ONLY_SS_CALLABLE");
+        _;
+    }
+
     function getFee() external view override returns (uint256 fee) {
         fee = (IBalancer(balancerFee).getFlashLoanFeePercentage() * magnifier) / feeDecimal;
     }
 
-    function flashLoan(address token, uint256 amount) external override loanProcess {
+    function flashLoan(address token, uint256 amount) external override loanProcess onlySS {
         address[] memory tokens = new address[](1);
         uint256[] memory amounts = new uint256[](1);
 

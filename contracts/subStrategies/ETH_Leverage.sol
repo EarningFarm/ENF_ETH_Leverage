@@ -369,6 +369,10 @@ contract ETHLeverage is OwnableUpgradeable, ISubStrategy, IETHLeverage {
         }
 
         uint256 collapsed = block.number - lastEarnBlock;
+
+        // If collapsed is zero, return
+        if (collapsed == 0) return;
+
         uint256 a = (lastTotal * blockRate * collapsed) / 1e18;
         uint256 b = (_totalAssets() * blockRate * collapsed) / 1e18;
         console.log("AB: ", a, b);
@@ -383,6 +387,9 @@ contract ETHLeverage is OwnableUpgradeable, ISubStrategy, IETHLeverage {
 
         uint256 feePoolBal = IERC20(vault).balanceOf(feePool);
         uint256 totalEF = IERC20(vault).totalSupply();
+
+        if (totalEF == 0) return;
+
         stFee = stFee - ((stFee * feePoolBal) / (totalEF));
 
         uint256 mintAmt = (stFee * totalEF) / (_totalAssets() - stFee);

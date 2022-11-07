@@ -30,9 +30,6 @@ contract Controller is Initializable, IController, OwnableUpgradeable, Reentranc
     // WETH address
     address public weth;
 
-    // Exchange Address
-    address public exchange;
-
     // Default mode
     bool public isDefault;
 
@@ -60,9 +57,6 @@ contract Controller is Initializable, IController, OwnableUpgradeable, Reentranc
     // Treasury Address
     address public treasury;
 
-    // Harvest Fee
-    uint256 public harvestFee;
-
     event Harvest(address asset, uint256 prevTotal, uint256 assets, uint256 harvestAt);
 
     event MoveFund(address from, address to, uint256 withdrawnAmount, uint256 depositAmount, uint256 movedAt);
@@ -80,8 +74,6 @@ contract Controller is Initializable, IController, OwnableUpgradeable, Reentranc
     event SetExchange(address exchange);
 
     event SetWithdrawFee(uint256 withdrawFee);
-
-    event SetHarvestFee(uint256 harvestFee);
 
     event SetDefaultDepositSS(uint8 defaultDepositSS);
 
@@ -418,16 +410,6 @@ contract Controller is Initializable, IController, OwnableUpgradeable, Reentranc
     }
 
     /**
-        Set exchange address
-     */
-    function setExchange(address _exchange) public onlyOwner {
-        require(_exchange != address(0), "ZERO_ADDRESS");
-        exchange = _exchange;
-
-        emit SetExchange(exchange);
-    }
-
-    /**
         Set withdraw fee
      */
     function setWithdrawFee(uint256 _withdrawFee) public onlyOwner {
@@ -435,16 +417,6 @@ contract Controller is Initializable, IController, OwnableUpgradeable, Reentranc
         withdrawFee = _withdrawFee;
 
         emit SetWithdrawFee(withdrawFee);
-    }
-
-    /**
-        Set Harvest fee
-     */
-    function setHarvestFee(uint256 _harvestFee) public onlyOwner {
-        require(_harvestFee < magnifier, "INVALID_Harvest_FEE");
-        harvestFee = _harvestFee;
-
-        emit SetHarvestFee(harvestFee);
     }
 
     /**
