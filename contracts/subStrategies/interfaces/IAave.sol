@@ -41,4 +41,6 @@ interface IAave {
             uint256 ltv,
             uint256 healthFactor
         );
+
+    function setUserUseReserveAsCollateral(address _reserse, bool _useAsCollateral) external;
 }

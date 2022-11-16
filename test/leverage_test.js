@@ -167,13 +167,13 @@ describe("ENF Vault test", async () => {
     console.log(`\tTotal ETH Balance: ${toEth(total)}`);
   });
 
-  it("Raise Actual LTV", async () => {
-    await expect(leverage.raiseLTV(7000)).to.be.revertedWith("NO_NEED_TO_RAISE");
-  });
+  // it("Raise Actual LTV", async () => {
+  //   await expect(leverage.raiseLTV(7000)).to.be.revertedWith("NO_NEED_TO_RAISE");
+  // });
 
-  it("Reduce Actual LTV", async () => {
-    await leverage.reduceLTV();
-  });
+  // it("Reduce Actual LTV", async () => {
+  //   await leverage.reduceLTV();
+  // });
 
   it("Emergency Withdraw", async () => {
     const oldBal = await stETHContract(deployer).balanceOf(deployer.address);
@@ -184,5 +184,29 @@ describe("ENF Vault test", async () => {
     console.log(`\tTotal ETH Balance: ${toEth(total)}`);
     const newBal = await stETHContract(deployer).balanceOf(deployer.address);
     console.log("\tNew Bal: ", toEth(newBal));
+  });
+
+  // it("Deposit 1 ETH", async () => {
+  //   await vault.connect(alice).deposit(fromEth(1), alice.address, { value: fromEth(1) });
+
+  //   // Read Total Assets
+  //   const total = await vault.totalAssets();
+  //   console.log(`\tTotal ETH Balance: ${toEth(total)}`);
+
+  //   // Read ENF token Mint
+  //   const enf = await vault.balanceOf(alice.address);
+  //   console.log(`\tAlice ENF Balance: ${toEth(enf)}`);
+  // });
+
+  it("Owner Deposit", async () => {
+    // Read Total Assets
+    let total = await vault.totalAssets();
+    console.log(`\tTotal ETH Balance: ${toEth(total)}`);
+
+    await leverage.ownerDeposit(fromEth(1), { value: fromEth(1) });
+
+    // Read Total Assets
+    total = await vault.totalAssets();
+    console.log(`\tTotal ETH Balance: ${toEth(total)}`);
   });
 });

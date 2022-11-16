@@ -16,9 +16,9 @@ async function main() {
 
   console.log("\nDeploying Contracts\n".yellow);
 
-  const tri = "0x0F97afE1aedFc6B89DE66950296E130cA814B010";
+  const address = "0x12Df0C95D2c549bbBC96cf8FbA02cA4Bc541aFD9";
 
-  await verifyUpgradeable(tri);
+  await verifyUpgradeable(address);
   // await verifyUpgradeable(lusd.address);
   // await verifyUpgradeable(aave.address);
   // await verifyUpgradeable(compound.address);

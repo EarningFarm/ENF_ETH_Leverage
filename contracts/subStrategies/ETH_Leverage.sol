@@ -210,6 +210,9 @@ contract ETHLeverage is OwnableUpgradeable, ISubStrategy, IETHLeverage {
             IERC20(stETH).approve(aave, stETHBal);
 
             IAave(aave).deposit(stETH, stETHBal, address(this), 0);
+            if (getCollateral() == 0) {
+                IAave(aave).setUserUseReserveAsCollateral(stETH, true);
+            }
             console.log("AAVE Deposited: ", getCollateral());
             // Repay flash loan
             uint256 repay = loanAmt + feeAmt;
@@ -323,6 +326,7 @@ contract ETHLeverage is OwnableUpgradeable, ISubStrategy, IETHLeverage {
         // Get new total assets amount
         uint256 newAmt = _totalAssets();
 
+        console.log("Prev Amt: ", prevAmt, newAmt);
         // Deposited amt
         uint256 deposited = newAmt - prevAmt;
         uint256 minOutput = (_amount * (magnifier - depositSlippage)) / magnifier;
@@ -364,6 +368,7 @@ contract ETHLeverage is OwnableUpgradeable, ISubStrategy, IETHLeverage {
      */
     function _harvest() internal {
         if (_totalAssets() == 0) {
+            console.log("TotalAssets: ", _totalAssets());
             lastEarnBlock = block.number;
             return;
         }
