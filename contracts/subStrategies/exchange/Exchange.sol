@@ -42,12 +42,9 @@ contract ETHLeverExchange is OwnableUpgradeable, IExchange {
     }
 
     function swapStETH(uint256 amount) external override onlyLeverSS {
-        console.log("Exchange input: ", amount, address(this).balance);
         require(address(this).balance >= amount, "INSUFFICIENT_ETH");
-        console.log("Exchange curve: ", curvePool);
 
         uint256 curveOut = ICurve(curvePool).get_dy(0, 1, amount);
-        console.log("Exchange: ", curveOut, address(this).balance);
         if (curveOut < amount) {
             IStETH(stETH).submit{value: address(this).balance}(address(this));
         } else {

@@ -14,8 +14,6 @@ import "../interfaces/IExchange.sol";
 import "../interfaces/IRouter.sol";
 import "../utils/TransferHelper.sol";
 
-import "hardhat/console.sol";
-
 contract Controller is Initializable, IController, OwnableUpgradeable, ReentrancyGuardUpgradeable {
     using SafeMath for uint256;
 
@@ -128,7 +126,6 @@ contract Controller is Initializable, IController, OwnableUpgradeable, Reentranc
         Unless loop through sub strategies regiestered and distribute assets according to the allocpoint of each SS
      */
     function _deposit(uint256 _amount) internal returns (uint256 depositAmt) {
-        console.log("Controller: ", address(this).balance);
         if (isDefault) {
             // Check Such default SS exists in current pool
             require(subStrategies.length > defaultDepositSS, "INVALID_POOL_LENGTH");
@@ -209,7 +206,6 @@ contract Controller is Initializable, IController, OwnableUpgradeable, Reentranc
         }
 
         if (withdrawAmt > 0) {
-            console.log("Cont Withdraw: ", address(this).balance, withdrawAmt);
             require(address(this).balance >= withdrawAmt, "INVALID_WITHDRAWN_AMOUNT");
 
             // Pay Withdraw Fee to treasury and send rest to user
@@ -275,7 +271,6 @@ contract Controller is Initializable, IController, OwnableUpgradeable, Reentranc
     //             continue;
     //         // Harvest from Individual Sub Strategy
     //         ISubStrategy(subStrategy).harvest();
-    //         console.log("Harvestd");
     //     }
 
     //     require(exchange != address(0), "EXCHANGE_NOT_SET");
@@ -291,7 +286,6 @@ contract Controller is Initializable, IController, OwnableUpgradeable, Reentranc
     //         address toToken = IRouter(_routers[i]).pathTo(_indexes[i]);
 
     //         uint256 amount = getBalance(address(fromToken), address(this));
-    //         console.log("From Token: ", fromToken, amount);
     //         if (amount == 0) continue;
 
     //         if (fromToken == weth) {

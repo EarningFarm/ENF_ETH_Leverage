@@ -197,7 +197,6 @@ contract ETHLeverage is OwnableUpgradeable, ISubStrategy, IETHLeverage {
             // Withdraw ETH from WETH
             IWeth(weth).withdraw(loanAmt);
             uint256 ethBal = address(this).balance;
-            console.log("Deposit: ", loanAmt, ethBal);
             // Transfer ETH to Exchange
             TransferHelper.safeTransferETH(exchange, ethBal);
             // Swap ETH to STETH
@@ -205,7 +204,6 @@ contract ETHLeverage is OwnableUpgradeable, ISubStrategy, IETHLeverage {
 
             // Deposit STETH to AAVE
             uint256 stETHBal = IERC20(stETH).balanceOf(address(this));
-            console.log("StETH bal: ", stETHBal);
             IERC20(stETH).approve(aave, 0);
             IERC20(stETH).approve(aave, stETHBal);
 
@@ -213,35 +211,27 @@ contract ETHLeverage is OwnableUpgradeable, ISubStrategy, IETHLeverage {
             if (getCollateral() == 0) {
                 IAave(aave).setUserUseReserveAsCollateral(stETH, true);
             }
-            console.log("AAVE Deposited: ", getCollateral());
             // Repay flash loan
             uint256 repay = loanAmt + feeAmt;
-            console.log("AAVE Borrow: ", repay);
             IAave(aave).borrow(weth, repay, 2, 0, address(this));
-            console.log("AAVE Borrow: ", repay);
 
             TransferHelper.safeTransfer(weth, receiver, repay);
         } else if (curState == SSState.Withdraw) {
             // Withdraw ETH from WETH
             uint256 stETHAmt = (loanAmt * IERC20(astETH).balanceOf(address(this))) / getDebt();
-            console.log("Withdraw Loan: ", stETHAmt, loanAmt);
             // Approve WETH to AAVE
             IERC20(weth).approve(aave, 0);
             IERC20(weth).approve(aave, loanAmt);
 
             // Repay WETH to aave
             IAave(aave).repay(weth, loanAmt, 2, address(this));
-            console.log("AAVE REpay");
             IAave(aave).withdraw(stETH, stETHAmt, address(this));
-            console.log("AAVE Withdraw");
 
             // Swap STETH to ETH
             TransferHelper.safeTransfer(stETH, exchange, stETHAmt);
             IExchange(exchange).swapETH(stETHAmt);
-            console.log("ETH Bal: ", address(this).balance, loanAmt);
             // Deposit WETH
             TransferHelper.safeTransferETH(weth, (loanAmt + feeAmt));
-            console.log("WETH Bal: ", IERC20(weth).balanceOf(address(this)));
             // Repay Weth to receiver
             TransferHelper.safeTransfer(weth, receiver, loanAmt + feeAmt);
         } else if (curState == SSState.EmergencyWithdraw) {
@@ -261,10 +251,8 @@ contract ETHLeverage is OwnableUpgradeable, ISubStrategy, IETHLeverage {
             IERC20(stETH).approve(exchange, stETHAmt);
 
             IExchange(exchange).swapExactETH(stETHAmt, loanAmt + feeAmt);
-            console.log("ETH Bal: ", address(this).balance, loanAmt);
             // Deposit WETH
             TransferHelper.safeTransferETH(weth, (loanAmt + feeAmt));
-            console.log("WETH Bal: ", IERC20(weth).balanceOf(address(this)));
             // Repay Weth to receiver
             TransferHelper.safeTransfer(weth, receiver, loanAmt + feeAmt);
         } else {
@@ -326,7 +314,6 @@ contract ETHLeverage is OwnableUpgradeable, ISubStrategy, IETHLeverage {
         // Get new total assets amount
         uint256 newAmt = _totalAssets();
 
-        console.log("Prev Amt: ", prevAmt, newAmt);
         // Deposited amt
         uint256 deposited = newAmt - prevAmt;
         uint256 minOutput = (_amount * (magnifier - depositSlippage)) / magnifier;
@@ -342,33 +329,32 @@ contract ETHLeverage is OwnableUpgradeable, ISubStrategy, IETHLeverage {
     function withdraw(uint256 _amount) external override onlyController onWithdraw returns (uint256) {
         // Harvest Reward First
         _harvest();
-        console.log("Harvest");
+
         // Get Prev Deposit Amt
         uint256 prevAmt = _totalAssets();
         require(_amount <= prevAmt, "INSUFFICIENT_ASSET");
 
         uint256 loanAmt = (getDebt() * _amount) / _totalAssets();
-        console.log("Loan: ", prevAmt, loanAmt);
         IFlashloanReceiver(receiver).flashLoan(weth, loanAmt);
 
         uint256 toSend = address(this).balance;
-        console.log("To Send: ", toSend);
         TransferHelper.safeTransferETH(controller, toSend);
 
         return toSend;
     }
 
-    // /**
-    //     Harvest reward token from convex booster
-    //  */
-    // function harvest() external override onlyController {}
+    /**
+        Harvest reward token from convex booster
+     */
+    function harvest() external onlyOwner {
+        _harvest();
+    }
 
     /**
         Internal Harvest Function
      */
     function _harvest() internal {
         if (_totalAssets() == 0) {
-            console.log("TotalAssets: ", _totalAssets());
             lastEarnBlock = block.number;
             return;
         }
@@ -380,15 +366,12 @@ contract ETHLeverage is OwnableUpgradeable, ISubStrategy, IETHLeverage {
 
         uint256 a = (lastTotal * blockRate * collapsed) / 1e18;
         uint256 b = (_totalAssets() * blockRate * collapsed) / 1e18;
-        console.log("AB: ", a, b);
         uint256 stFee;
         if (a <= b) {
             stFee = (a + b) / 2;
         } else {
             stFee = b;
         }
-
-        console.log("STFEE: ", stFee);
 
         uint256 feePoolBal = IERC20(vault).balanceOf(feePool);
         uint256 totalEF = IERC20(vault).totalSupply();
@@ -398,7 +381,7 @@ contract ETHLeverage is OwnableUpgradeable, ISubStrategy, IETHLeverage {
         stFee = stFee - ((stFee * feePoolBal) / (totalEF));
 
         uint256 mintAmt = (stFee * totalEF) / (_totalAssets() - stFee);
-        console.log("Mint: ", mintAmt);
+
         // Mint EF token to fee pool
         IVault(vault).mint(mintAmt, feePool);
 

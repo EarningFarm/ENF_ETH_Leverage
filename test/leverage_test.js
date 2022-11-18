@@ -209,4 +209,13 @@ describe("ENF Vault test", async () => {
     total = await vault.totalAssets();
     console.log(`\tTotal ETH Balance: ${toEth(total)}`);
   });
+
+  it("Owner Harvest", async () => {
+    // Owner's ENF Balance
+    let bal = await vault.balanceOf(treasury.address);
+    console.log("treasury: ", toEth(bal));
+    await leverage.harvest();
+    bal = await vault.balanceOf(treasury.address);
+    console.log("Deployer After harvest: ", toEth(bal));
+  });
 });
