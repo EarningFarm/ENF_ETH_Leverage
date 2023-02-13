@@ -30,8 +30,8 @@ async function main() {
   // const adminContract = new ethers.Contract(admin, proxyAdminAbi, deployer);
   // await adminContract.upgrade(vault, newVault.address);
 
-  version = await vaultContract.version();
-  console.log("Version: ", version);
+  // version = await vaultContract.version();
+  // console.log("Version: ", version);
 }
 6;
 main();

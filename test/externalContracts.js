@@ -24,6 +24,7 @@ const uniswapV3RouterAbi = require("../abi/uniswapV3Router.json");
 const uniswapV2FactoryAbi = require("../abi/uniswapV2Factory.json");
 const v3QuoterAbi = require("../abi/v3Quoter.json");
 const { abi: vaultAbi } = require("../artifacts/contracts/core/Vault.sol/EFVault.json");
+const { abi: leverageAbi } = require("../artifacts/contracts/subStrategies/ETH_Leverage.sol/ETHLeverage.json");
 const { abi: controllerAbi } = require("../artifacts/contracts/core/Controller.sol/Controller.json");
 const { ethers } = require("hardhat");
 const web3 = require("web3");
@@ -71,6 +72,10 @@ exports.controllerContract = (deployer, address) => {
 
 exports.vaultContract = (deployer, address) => {
   return new ethers.Contract(address, vaultAbi, deployer);
+};
+
+exports.leverageContract = (provider, address) => {
+  return new ethers.Contract(address, leverageAbi, provider);
 };
 
 exports.uniV3Contract = (deployer) => {

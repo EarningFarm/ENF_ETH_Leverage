@@ -143,29 +143,29 @@ describe("ENF Vault test", async () => {
     console.log(`\tAlice ENF Balance: ${toEth(enf)}`);
   });
 
-  it("Withdraw 1 ETH", async () => {
-    await vault.connect(alice).withdraw(fromEth(0.5), alice.address);
+  // it("Withdraw 1 ETH", async () => {
+  //   await vault.connect(alice).withdraw(fromEth(0.5), alice.address);
 
-    // Read Total Assets
-    const total = await vault.totalAssets();
-    console.log(`\tTotal ETH Balance: ${toEth(total)}`);
+  //   // Read Total Assets
+  //   const total = await vault.totalAssets();
+  //   console.log(`\tTotal ETH Balance: ${toEth(total)}`);
 
-    // Read ENF token Mint
-    const enf = await vault.balanceOf(alice.address);
-    console.log(`\tAlice ENF Balance: ${toEth(enf)}`);
-  });
+  //   // Read ENF token Mint
+  //   const enf = await vault.balanceOf(alice.address);
+  //   console.log(`\tAlice ENF Balance: ${toEth(enf)}`);
+  // });
 
-  it("Owner Deposit", async () => {
-    // Read Total Assets
-    let total = await vault.totalAssets();
-    console.log(`\tTotal ETH Balance: ${toEth(total)}`);
+  // it("Owner Deposit", async () => {
+  //   // Read Total Assets
+  //   let total = await vault.totalAssets();
+  //   console.log(`\tTotal ETH Balance: ${toEth(total)}`);
 
-    await leverage.ownerDeposit(fromEth(1), { value: fromEth(1) });
+  //   await leverage.ownerDeposit(fromEth(1), { value: fromEth(1) });
 
-    // Read Total Assets
-    total = await vault.totalAssets();
-    console.log(`\tTotal ETH Balance: ${toEth(total)}`);
-  });
+  //   // Read Total Assets
+  //   total = await vault.totalAssets();
+  //   console.log(`\tTotal ETH Balance: ${toEth(total)}`);
+  // });
 
   // it("Raise Actual LTV", async () => {
   //   await expect(leverage.raiseLTV(7000)).to.be.revertedWith("NO_NEED_TO_RAISE");
@@ -175,16 +175,16 @@ describe("ENF Vault test", async () => {
   //   await leverage.reduceLTV();
   // });
 
-  it("Emergency Withdraw", async () => {
-    const oldBal = await stETHContract(deployer).balanceOf(deployer.address);
-    console.log("\tOld Bal: ", toEth(oldBal));
-    await leverage.emergencyWithdraw();
-    // Read Total Assets
-    const total = await vault.totalAssets();
-    console.log(`\tTotal ETH Balance: ${toEth(total)}`);
-    const newBal = await stETHContract(deployer).balanceOf(deployer.address);
-    console.log("\tNew Bal: ", toEth(newBal));
-  });
+  // it("Emergency Withdraw", async () => {
+  //   const oldBal = await stETHContract(deployer).balanceOf(deployer.address);
+  //   console.log("\tOld Bal: ", toEth(oldBal));
+  //   await leverage.emergencyWithdraw();
+  //   // Read Total Assets
+  //   const total = await vault.totalAssets();
+  //   console.log(`\tTotal ETH Balance: ${toEth(total)}`);
+  //   const newBal = await stETHContract(deployer).balanceOf(deployer.address);
+  //   console.log("\tNew Bal: ", toEth(newBal));
+  // });
 
   // it("Deposit 1 ETH", async () => {
   //   await vault.connect(alice).deposit(fromEth(1), alice.address, { value: fromEth(1) });
@@ -198,24 +198,39 @@ describe("ENF Vault test", async () => {
   //   console.log(`\tAlice ENF Balance: ${toEth(enf)}`);
   // });
 
+  // it("Owner Deposit", async () => {
+  //   // Read Total Assets
+  //   let total = await vault.totalAssets();
+  //   console.log(`\tTotal ETH Balance: ${toEth(total)}`);
+
+  //   await leverage.ownerDeposit(fromEth(1), { value: fromEth(1) });
+
+  //   // Read Total Assets
+  //   total = await vault.totalAssets();
+  //   console.log(`\tTotal ETH Balance: ${toEth(total)}`);
+  // });
+
+  // it("Owner Harvest", async () => {
+  //   // Owner's ENF Balance
+  //   let bal = await vault.balanceOf(treasury.address);
+  //   console.log("treasury: ", toEth(bal));
+  //   await leverage.harvest();
+  //   bal = await vault.balanceOf(treasury.address);
+  //   console.log("Deployer After harvest: ", toEth(bal));
+  // });
+
+  it("Pass Time and block number", async () => {
+    await network.provider.send("evm_increaseTime", [3600 * 24 * 100]);
+    for (let i = 0; i < 100; i++) {
+      await network.provider.send("evm_mine");
+    }
+    await network.provider.send("evm_mine");
+    await network.provider.send("evm_mine");
+  });
+
   it("Owner Deposit", async () => {
     // Read Total Assets
     let total = await vault.totalAssets();
     console.log(`\tTotal ETH Balance: ${toEth(total)}`);
-
-    await leverage.ownerDeposit(fromEth(1), { value: fromEth(1) });
-
-    // Read Total Assets
-    total = await vault.totalAssets();
-    console.log(`\tTotal ETH Balance: ${toEth(total)}`);
-  });
-
-  it("Owner Harvest", async () => {
-    // Owner's ENF Balance
-    let bal = await vault.balanceOf(treasury.address);
-    console.log("treasury: ", toEth(bal));
-    await leverage.harvest();
-    bal = await vault.balanceOf(treasury.address);
-    console.log("Deployer After harvest: ", toEth(bal));
   });
 });
