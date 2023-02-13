@@ -79,14 +79,18 @@ contract EFVault is IVault, Initializable, ERC20Upgradeable, OwnableUpgradeable,
     function initialize(
         ERC20Upgradeable _asset,
         string memory _name,
-        string memory _symbol
+        string memory _symbol,
+        uint256 _assetDecimal,
+        address _whiteList
     ) public initializer {
         __ERC20_init(_name, _symbol);
         __Ownable_init();
         __ReentrancyGuard_init();
         asset = _asset;
+        assetDecimal = _assetDecimal;
         maxDeposit = type(uint256).max;
         maxWithdraw = type(uint256).max;
+        whiteList = _whiteList;
     }
 
     function deposit(uint256 assets, address receiver)
